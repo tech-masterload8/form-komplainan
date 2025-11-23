@@ -19,12 +19,13 @@
 //    }
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...GANTI_DENGAN_API_KEY_ANDA",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef1234567890"
+  apiKey: "AIzaSyAuDU61lSnZQCVcw7G43yD2IYVwdlAOl1o",
+  authDomain: "form-komplain-masterload8.firebaseapp.com",
+  projectId: "form-komplain-masterload8",
+  storageBucket: "form-komplain-masterload8.firebasestorage.app",
+  messagingSenderId: "54455997906",
+  appId: "1:54455997906:web:93751835984cb728c3240b",
+  measurementId: "G-98ZRS0088B"
 };
 
 // Export config untuk digunakan di file lain
