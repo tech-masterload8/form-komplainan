@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Form Komplain Transfer - Laporkan kendala transfer Anda">
+    <title>Form Komplain Transfer</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Card Form Komplain -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Form Komplain Transfer</div>
+                <div class="card-subtitle">Laporkan kendala transfer Anda</div>
+            </div>
+
+            <!-- Alert Error (ditampilkan jika ada error) -->
+            <div id="alertError" class="alert alert-error hidden"></div>
+
+            <!-- Alert Info (ditampilkan saat loading) -->
+            <div id="alertInfo" class="alert alert-info hidden">
+                Sedang menginisialisasi aplikasi...
+            </div>
+
+            <!-- Form Komplain -->
+            <form id="formKomplain">
+                <!-- Kode User -->
+                <div class="form-group">
+                    <label class="form-label" for="kodeUser">
+                        Kode User <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="kodeUser"
+                        name="kodeUser"
+                        class="form-input"
+                        placeholder="Masukkan kode user Anda"
+                        required
+                    >
+                    <div class="error-message" id="errorKodeUser"></div>
+                </div>
+
+                <!-- Nama Toko -->
+                <div class="form-group">
+                    <label class="form-label" for="namaToko">
+                        Nama Toko <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="namaToko"
+                        name="namaToko"
+                        class="form-input"
+                        placeholder="Masukkan nama toko"
+                        required
+                    >
+                    <div class="error-message" id="errorNamaToko"></div>
+                </div>
+
+                <!-- Tanggal -->
+                <div class="form-group">
+                    <label class="form-label" for="tanggal">
+                        Tanggal Transfer <span class="required">*</span>
+                    </label>
+                    <input
+                        type="date"
+                        id="tanggal"
+                        name="tanggal"
+                        class="form-input"
+                        required
+                    >
+                    <div class="error-message" id="errorTanggal"></div>
+                </div>
+
+                <!-- Pengirim -->
+                <div class="form-group">
+                    <label class="form-label" for="pengirim">
+                        Nama Pengirim <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="pengirim"
+                        name="pengirim"
+                        class="form-input"
+                        placeholder="Masukkan nama pengirim transfer"
+                        required
+                    >
+                    <div class="error-message" id="errorPengirim"></div>
+                </div>
+
+                <!-- Nominal -->
+                <div class="form-group">
+                    <label class="form-label" for="nominal">
+                        Nominal Transfer <span class="required">*</span>
+                    </label>
+                    <input
+                        type="number"
+                        id="nominal"
+                        name="nominal"
+                        class="form-input"
+                        placeholder="Masukkan nominal transfer"
+                        min="0"
+                        step="1"
+                        required
+                    >
+                    <div class="error-message" id="errorNominal"></div>
+                </div>
+
+                <!-- Bank -->
+                <div class="form-group">
+                    <label class="form-label" for="bank">
+                        Melalui Bank <span class="required">*</span>
+                    </label>
+                    <select id="bank" name="bank" class="form-select" required>
+                        <option value="">-- Pilih Bank --</option>
+                        <option value="BCA">BCA</option>
+                        <option value="BRI">BRI</option>
+                        <option value="BNI">BNI</option>
+                        <option value="Mandiri">Mandiri</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                    <div class="error-message" id="errorBank"></div>
+                </div>
+
+                <!-- RRN (hanya muncul jika bank = QRIS) -->
+                <div class="form-group hidden" id="groupRRN">
+                    <label class="form-label" for="rrn">
+                        RRN (Reference Number) <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="rrn"
+                        name="rrn"
+                        class="form-input"
+                        placeholder="Masukkan nomor referensi QRIS"
+                    >
+                    <div class="error-message" id="errorRRN"></div>
+                </div>
+
+                <!-- Upload Bukti Transfer -->
+                <div class="form-group">
+                    <label class="form-label" for="buktiTransfer">
+                        Bukti Transfer <span class="required">*</span>
+                    </label>
+                    <input
+                        type="file"
+                        id="buktiTransfer"
+                        name="buktiTransfer"
+                        class="form-file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        capture="environment"
+                        required
+                    >
+                    <div class="text-muted" style="margin-top: 0.5rem;">
+                        Format: JPG, PNG (Maks. 5 MB)
+                    </div>
+                    <div class="error-message" id="errorBuktiTransfer"></div>
+                </div>
+
+                <!-- Tombol Submit -->
+                <button
+                    type="submit"
+                    id="btnSubmit"
+                    class="btn btn-primary btn-block"
+                >
+                    Kirim Komplain
+                </button>
+            </form>
+
+            <!-- Section Success (ditampilkan setelah berhasil submit) -->
+            <div class="success-section" id="successSection">
+                <div class="alert alert-success">
+                    <strong>Komplain Berhasil Dikirim!</strong>
+                    <div>Simpan nomor tiket di bawah ini dan kirimkan ke CS WhatsApp kami.</div>
+                </div>
+
+                <div class="ticket-number-display">
+                    <textarea
+                        id="ticketNumberText"
+                        class="ticket-number-text"
+                        readonly
+                    ></textarea>
+                </div>
+
+                <button
+                    type="button"
+                    id="btnCopy"
+                    class="btn btn-success btn-block btn-sm"
+                >
+                    Copy Nomor Tiket
+                </button>
+
+                <button
+                    type="button"
+                    id="btnNewComplaint"
+                    class="btn btn-secondary btn-block btn-sm mt-1"
+                >
+                    Buat Komplain Baru
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <!-- PENTING: Gunakan versi terbaru dari Firebase -->
+    <script type="module" src="assets/app-komplain.js"></script>
+</body>
+</html>

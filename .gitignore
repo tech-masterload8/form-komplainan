@@ -1,0 +1,59 @@
+# Konfigurasi Firebase (jangan commit credentials asli)
+# public/assets/firebase-config.js
+
+# Konfigurasi Database PHP (jangan commit credentials asli)
+# api/config.php
+
+# File backup database
+*.sql.backup
+*.sql.gz
+
+# Logs
+*.log
+error_log
+php_error.log
+
+# Cache
+*.cache
+cache/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Composer (jika menggunakan Firebase Admin SDK)
+/vendor/
+composer.lock
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Service Account Keys (jangan commit!)
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# Upload directory (jika ada)
+uploads/
+bukti-transfer/
+
+# Node modules (jika ada)
+node_modules/

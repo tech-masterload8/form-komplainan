@@ -1,0 +1,20 @@
+{
+    "name": "your-company/komplain-system",
+    "description": "Sistem Tiket Komplain Transfer dengan Firebase",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "ext-mysqli": "*",
+        "ext-json": "*",
+        "ext-curl": "*",
+        "kreait/firebase-php": "^7.0"
+    },
+    "require-dev": {},
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

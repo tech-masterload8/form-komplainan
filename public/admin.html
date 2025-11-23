@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dashboard Admin - Kelola Tiket Komplain">
+    <title>Admin - Kelola Tiket Komplain</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div class="container admin-container">
+        <!-- Section Login (ditampilkan jika belum login) -->
+        <div id="loginSection" class="card login-form">
+            <div class="card-header">
+                <div class="card-title">Login Admin</div>
+                <div class="card-subtitle">Masuk untuk mengelola tiket komplain</div>
+            </div>
+
+            <!-- Alert Error Login -->
+            <div id="loginError" class="alert alert-error hidden"></div>
+
+            <form id="formLogin">
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">
+                        Email <span class="required">*</span>
+                    </label>
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        name="loginEmail"
+                        class="form-input"
+                        placeholder="admin@example.com"
+                        required
+                    >
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">
+                        Password <span class="required">*</span>
+                    </label>
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        name="loginPassword"
+                        class="form-input"
+                        placeholder="Masukkan password"
+                        required
+                    >
+                </div>
+
+                <!-- Tombol Login -->
+                <button
+                    type="submit"
+                    id="btnLogin"
+                    class="btn btn-primary btn-block"
+                >
+                    Login
+                </button>
+            </form>
+
+            <div class="text-muted text-center mt-1">
+                Akun admin dibuat melalui Firebase Console
+            </div>
+        </div>
+
+        <!-- Section Dashboard (ditampilkan jika sudah login) -->
+        <div id="dashboardSection" class="dashboard">
+            <!-- Header Dashboard -->
+            <div class="card">
+                <div class="admin-header">
+                    <div>
+                        <div class="card-title">Dashboard Tiket Komplain</div>
+                        <div class="card-subtitle">Kelola dan pantau tiket komplain</div>
+                    </div>
+
+                    <div class="admin-actions">
+                        <button
+                            type="button"
+                            id="btnRefresh"
+                            class="btn btn-secondary btn-sm"
+                        >
+                            Refresh Data
+                        </button>
+                        <button
+                            type="button"
+                            id="btnLogout"
+                            class="btn btn-secondary btn-sm"
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Dashboard -->
+            <div id="dashboardError" class="alert alert-error hidden"></div>
+            <div id="dashboardInfo" class="alert alert-info hidden"></div>
+
+            <!-- Tabel Tiket -->
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table" id="tableTickets">
+                        <thead>
+                            <tr>
+                                <th>No. Tiket</th>
+                                <th>Tanggal</th>
+                                <th>Kode User</th>
+                                <th>Nama Toko</th>
+                                <th>Pengirim</th>
+                                <th>Nominal</th>
+                                <th>Bank</th>
+                                <th>RRN</th>
+                                <th>Bukti</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data akan diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button
+                        type="button"
+                        id="btnPrevPage"
+                        class="btn btn-secondary btn-sm"
+                        disabled
+                    >
+                        Sebelumnya
+                    </button>
+
+                    <div class="pagination-info" id="paginationInfo">
+                        Halaman 1 dari 1
+                    </div>
+
+                    <button
+                        type="button"
+                        id="btnNextPage"
+                        class="btn btn-secondary btn-sm"
+                        disabled
+                    >
+                        Berikutnya
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal untuk preview gambar bukti transfer -->
+    <div id="modalImage" class="modal-overlay">
+        <div class="modal-content">
+            <button type="button" class="modal-close" id="btnCloseModal">
+                ×
+            </button>
+            <img id="modalImagePreview" src="" alt="Bukti Transfer" class="modal-image">
+        </div>
+    </div>
+
+    <!-- Firebase SDK & App Script -->
+    <script type="module" src="assets/app-admin.js"></script>
+</body>
+</html>
