@@ -356,23 +356,3 @@ Jika mengalami kendala:
 2. Cek error log PHP di server
 3. Cek Firebase Console untuk error Authentication/Storage
 4. Pastikan semua konfigurasi sudah benar
-
-## 📝 Lisensi
-
-Kode ini bebas digunakan untuk keperluan komersial maupun non-komersial.
-
-## 🎉 Selesai!
-
-Sistem tiket komplain Anda sudah siap digunakan!
-
-**Testing Checklist:**
-- [ ] User bisa submit komplain
-- [ ] Upload gambar berhasil ke Firebase Storage
-- [ ] Nomor tiket ter-generate dengan benar
-- [ ] Admin bisa login
-- [ ] Admin bisa lihat daftar tiket
-- [ ] Admin bisa lihat preview gambar
-- [ ] Pagination berfungsi
-- [ ] Rate limiting berfungsi
-
-Selamat menggunakan! 🚀
