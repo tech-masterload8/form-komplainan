@@ -155,7 +155,7 @@ function getClientIP(req) {
  *   ticket_number: string (jika success)
  * }
  */
-exports.createTicket = onRequest({cors: true}, async (req, res) => {
+exports.createTicket = onRequest({cors: true, region: 'asia-southeast1'}, async (req, res) => {
   // Set CORS headers
   res.set("Access-Control-Allow-Origin", "*"); // Ubah untuk production!
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -314,7 +314,7 @@ exports.createTicket = onRequest({cors: true}, async (req, res) => {
  *   }
  * }
  */
-exports.listTickets = onRequest({cors: true}, async (req, res) => {
+exports.listTickets = onRequest({cors: true, region: 'asia-southeast1'}, async (req, res) => {
   // Set CORS headers
   res.set("Access-Control-Allow-Origin", "*"); // Ubah untuk production!
   res.set("Access-Control-Allow-Methods", "GET, OPTIONS");

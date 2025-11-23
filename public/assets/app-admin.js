@@ -28,14 +28,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // Konfigurasi API endpoint
-// Gunakan direct Functions URL untuk reliability
-const API_LIST_TICKETS = 'https://us-central1-form-komplain-masterload8.cloudfunctions.net/listTickets';
+// Gunakan Firebase Hosting rewrites (path relatif)
+const API_LIST_TICKETS = '/api/listTickets';
 
-// ALTERNATIF: Jika menggunakan Firebase Hosting rewrites
-// const API_LIST_TICKETS = '/api/listTickets';
+// ALTERNATIF: Jika ingin pakai direct Functions URL (region: asia-southeast1)
+// const API_LIST_TICKETS = 'https://asia-southeast1-form-komplain-masterload8.cloudfunctions.net/listTickets';
 
 // ALTERNATIF: Jika testing dengan Firebase Emulator
-// const API_LIST_TICKETS = 'http://localhost:5001/form-komplain-masterload8/us-central1/listTickets';
+// const API_LIST_TICKETS = 'http://localhost:5001/form-komplain-masterload8/asia-southeast1/listTickets';
 
 // =============================================
 // DOM ELEMENTS

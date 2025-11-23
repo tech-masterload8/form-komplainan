@@ -38,14 +38,14 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 
 // Konfigurasi API endpoint
-// Gunakan direct Functions URL untuk reliability
-const API_CREATE_TICKET = 'https://us-central1-form-komplain-masterload8.cloudfunctions.net/createTicket';
+// Gunakan Firebase Hosting rewrites (path relatif)
+const API_CREATE_TICKET = '/api/createTicket';
 
-// ALTERNATIF: Jika menggunakan Firebase Hosting rewrites
-// const API_CREATE_TICKET = '/api/createTicket';
+// ALTERNATIF: Jika ingin pakai direct Functions URL (region: asia-southeast1)
+// const API_CREATE_TICKET = 'https://asia-southeast1-form-komplain-masterload8.cloudfunctions.net/createTicket';
 
 // ALTERNATIF: Jika testing dengan Firebase Emulator
-// const API_CREATE_TICKET = 'http://localhost:5001/form-komplain-masterload8/us-central1/createTicket';
+// const API_CREATE_TICKET = 'http://localhost:5001/form-komplain-masterload8/asia-southeast1/createTicket';
 
 // =============================================
 // DOM ELEMENTS
