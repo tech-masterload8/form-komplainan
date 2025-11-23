@@ -30,12 +30,15 @@ const auth = getAuth(app);
 // Konfigurasi API endpoint
 // Gunakan Firebase Hosting rewrites (path relatif)
 const API_LIST_TICKETS = '/api/listTickets';
+const API_UPDATE_TICKET_STATUS = '/api/updateTicketStatus';
 
 // ALTERNATIF: Jika ingin pakai direct Functions URL (region: asia-southeast1)
 // const API_LIST_TICKETS = 'https://asia-southeast1-form-komplain-masterload8.cloudfunctions.net/listTickets';
+// const API_UPDATE_TICKET_STATUS = 'https://asia-southeast1-form-komplain-masterload8.cloudfunctions.net/updateTicketStatus';
 
 // ALTERNATIF: Jika testing dengan Firebase Emulator
 // const API_LIST_TICKETS = 'http://localhost:5001/form-komplain-masterload8/asia-southeast1/listTickets';
+// const API_UPDATE_TICKET_STATUS = 'http://localhost:5001/form-komplain-masterload8/asia-southeast1/updateTicketStatus';
 
 // =============================================
 // DOM ELEMENTS
@@ -62,10 +65,25 @@ const btnPrevPage = document.getElementById('btnPrevPage');
 const btnNextPage = document.getElementById('btnNextPage');
 const paginationInfo = document.getElementById('paginationInfo');
 
-// Modal
+// Modal Image
 const modalImage = document.getElementById('modalImage');
 const modalImagePreview = document.getElementById('modalImagePreview');
 const btnCloseModal = document.getElementById('btnCloseModal');
+
+// Filter & Search
+const filterStatus = document.getElementById('filterStatus');
+const searchType = document.getElementById('searchType');
+const searchInput = document.getElementById('searchInput');
+const btnSearch = document.getElementById('btnSearch');
+const btnResetSearch = document.getElementById('btnResetSearch');
+
+// Modal Petugas
+const modalPetugas = document.getElementById('modalPetugas');
+const formPetugas = document.getElementById('formPetugas');
+const petugasName = document.getElementById('petugasName');
+const ticketIdHidden = document.getElementById('ticketIdHidden');
+const btnClosePetugasModal = document.getElementById('btnClosePetugasModal');
+const btnCancelPetugas = document.getElementById('btnCancelPetugas');
 
 // =============================================
 // STATE MANAGEMENT
@@ -77,6 +95,11 @@ let totalPages = 1;
 let perPage = 10;
 let totalTickets = 0;
 let isLoadingTickets = false;
+
+// Filter & Search State
+let currentStatusFilter = '';
+let currentSearchType = 'ticket';
+let currentSearchQuery = '';
 
 // =============================================
 // FIREBASE AUTH STATE LISTENER
@@ -217,7 +240,18 @@ async function loadTickets() {
 
     try {
         // Buat URL dengan query parameters
-        const url = `${API_LIST_TICKETS}?page=${currentPage}&per_page=${perPage}`;
+        let url = `${API_LIST_TICKETS}?page=${currentPage}&perPage=${perPage}`;
+
+        // Tambahkan filter status jika ada
+        if (currentStatusFilter) {
+            url += `&status=${encodeURIComponent(currentStatusFilter)}`;
+        }
+
+        // Tambahkan search parameters jika ada
+        if (currentSearchQuery) {
+            url += `&searchType=${encodeURIComponent(currentSearchType)}`;
+            url += `&search=${encodeURIComponent(currentSearchQuery)}`;
+        }
 
         // Panggil API dengan Authorization header
         const response = await fetch(url, {
@@ -287,7 +321,7 @@ function renderTicketsTable(tickets) {
     if (!tickets || tickets.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="9" class="table-empty">
+                <td colspan="12" class="table-empty">
                     Tidak ada data tiket
                 </td>
             </tr>
@@ -304,6 +338,49 @@ function renderTicketsTable(tickets) {
         // Format tanggal
         const tanggalFormatted = formatTanggal(ticket.tanggal);
 
+        // Status badge
+        const status = ticket.status || 'Open';
+        const statusBadgeClass = `badge badge-status-${status.toLowerCase()}`;
+        const statusBadge = `<span class="${statusBadgeClass}">${status}</span>`;
+
+        // Petugas name
+        const petugasText = ticket.petugas_name ? escapeHtml(ticket.petugas_name) : '-';
+
+        // Action buttons based on status
+        let actionButtons = '';
+        if (status === 'Open') {
+            actionButtons = `
+                <button
+                    type="button"
+                    class="btn btn-proses"
+                    onclick="window.showPetugasModal('${ticket.id}')"
+                >
+                    Proses
+                </button>
+            `;
+        } else if (status === 'Proses') {
+            actionButtons = `
+                <div class="action-buttons">
+                    <button
+                        type="button"
+                        class="btn btn-done"
+                        onclick="window.updateStatus('${ticket.id}', 'Done')"
+                    >
+                        Done
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-batal"
+                        onclick="window.updateStatus('${ticket.id}', 'Batal')"
+                    >
+                        Batal
+                    </button>
+                </div>
+            `;
+        } else {
+            actionButtons = '<span class="text-muted">-</span>';
+        }
+
         row.innerHTML = `
             <td><strong>${ticket.ticket_number}</strong></td>
             <td>${tanggalFormatted}</td>
@@ -313,6 +390,8 @@ function renderTicketsTable(tickets) {
             <td>${nominalFormatted}</td>
             <td><span class="badge badge-primary">${escapeHtml(ticket.bank)}</span></td>
             <td>${ticket.rrn ? escapeHtml(ticket.rrn) : '-'}</td>
+            <td>${statusBadge}</td>
+            <td>${petugasText}</td>
             <td>
                 <button
                     type="button"
@@ -322,6 +401,7 @@ function renderTicketsTable(tickets) {
                     Lihat Bukti
                 </button>
             </td>
+            <td>${actionButtons}</td>
         `;
 
         tableBody.appendChild(row);
@@ -394,10 +474,181 @@ modalImage.addEventListener('click', (e) => {
 
 // Tutup modal dengan tombol ESC
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modalImage.classList.contains('show')) {
-        closeModal();
+    if (e.key === 'Escape') {
+        if (modalImage.classList.contains('show')) {
+            closeModal();
+        }
+        if (modalPetugas.classList.contains('show')) {
+            closePetugasModal();
+        }
     }
 });
+
+// =============================================
+// FILTER & SEARCH HANDLERS
+// =============================================
+
+/**
+ * Handle filter status change
+ */
+filterStatus.addEventListener('change', () => {
+    currentStatusFilter = filterStatus.value;
+    currentPage = 1; // Reset ke halaman pertama
+    loadTickets();
+});
+
+/**
+ * Handle search button click
+ */
+btnSearch.addEventListener('click', () => {
+    currentSearchType = searchType.value;
+    currentSearchQuery = searchInput.value.trim();
+    currentPage = 1; // Reset ke halaman pertama
+    loadTickets();
+});
+
+/**
+ * Handle enter key di search input
+ */
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        btnSearch.click();
+    }
+});
+
+/**
+ * Handle reset search button
+ */
+btnResetSearch.addEventListener('click', () => {
+    filterStatus.value = '';
+    searchType.value = 'ticket';
+    searchInput.value = '';
+    currentStatusFilter = '';
+    currentSearchType = 'ticket';
+    currentSearchQuery = '';
+    currentPage = 1;
+    loadTickets();
+});
+
+// =============================================
+// PETUGAS MODAL HANDLERS
+// =============================================
+
+/**
+ * Show modal untuk input nama petugas
+ * Dipanggil dari onclick button "Proses"
+ */
+window.showPetugasModal = function(ticketId) {
+    ticketIdHidden.value = ticketId;
+    petugasName.value = '';
+    modalPetugas.classList.add('show');
+    petugasName.focus();
+};
+
+/**
+ * Close modal petugas
+ */
+function closePetugasModal() {
+    modalPetugas.classList.remove('show');
+    ticketIdHidden.value = '';
+    petugasName.value = '';
+}
+
+btnClosePetugasModal.addEventListener('click', closePetugasModal);
+btnCancelPetugas.addEventListener('click', closePetugasModal);
+
+// Tutup modal jika klik di luar dialog
+modalPetugas.addEventListener('click', (e) => {
+    if (e.target === modalPetugas) {
+        closePetugasModal();
+    }
+});
+
+/**
+ * Handle submit form petugas (Proses tiket)
+ */
+formPetugas.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const ticketId = ticketIdHidden.value;
+    const name = petugasName.value.trim();
+
+    if (!ticketId || !name) {
+        showDashboardError('Data tidak lengkap');
+        return;
+    }
+
+    // Update status to "Proses" with petugas name
+    await updateTicketStatus(ticketId, 'Proses', name);
+
+    closePetugasModal();
+});
+
+// =============================================
+// UPDATE TICKET STATUS
+// =============================================
+
+/**
+ * Update status tiket (Done atau Batal)
+ * Dipanggil dari onclick button "Done" atau "Batal"
+ */
+window.updateStatus = async function(ticketId, newStatus) {
+    await updateTicketStatus(ticketId, newStatus, null);
+};
+
+/**
+ * Fungsi umum untuk update status tiket
+ */
+async function updateTicketStatus(ticketId, newStatus, petugasNameValue) {
+    if (!currentIdToken) {
+        showDashboardError('Token autentikasi tidak tersedia');
+        return;
+    }
+
+    showDashboardInfo(`Mengubah status tiket menjadi ${newStatus}...`);
+    hideDashboardError();
+
+    try {
+        const payload = {
+            ticket_id: ticketId,
+            status: newStatus
+        };
+
+        // Tambahkan nama petugas jika ada (untuk status Proses)
+        if (petugasNameValue) {
+            payload.petugas_name = petugasNameValue;
+        }
+
+        const response = await fetch(API_UPDATE_TICKET_STATUS, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${currentIdToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Gagal mengubah status tiket');
+        }
+
+        if (!result.success) {
+            throw new Error(result.message || 'Gagal mengubah status tiket');
+        }
+
+        // Reload tiket untuk menampilkan perubahan
+        showDashboardInfo(result.message || 'Status tiket berhasil diubah');
+        setTimeout(() => {
+            loadTickets();
+        }, 500);
+
+    } catch (error) {
+        console.error('Error updating ticket status:', error);
+        showDashboardError(error.message || 'Terjadi kesalahan saat mengubah status');
+    }
+}
 
 // =============================================
 // UI HELPER FUNCTIONS

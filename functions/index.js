@@ -260,7 +260,10 @@ exports.createTicket = onRequest({cors: true, region: 'asia-southeast1'}, async 
       rrn: data.bank === "QRIS" ? data.rrn.trim() : null,
       buktiUrl: data.bukti_url.trim(),
       ipAddress: clientIP,
+      status: "Open",
+      petugasName: null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
     await db.collection("tickets").add(ticketData);
@@ -384,26 +387,73 @@ exports.listTickets = onRequest({cors: true, region: 'asia-southeast1'}, async (
     }
 
     // =============================================
-    // HITUNG TOTAL TIKET
+    // FILTER & SEARCH PARAMETERS
     // =============================================
-    const ticketsRef = db.collection("tickets");
+    const statusFilter = req.query.status || null; // "Open", "Proses", "Done", "Batal"
+    const searchType = req.query.searchType || null; // "ticket", "kode_user", "nama_toko", "pengirim"
+    const searchQuery = req.query.search || null;
+
+    // =============================================
+    // BUILD QUERY
+    // =============================================
+    let ticketsRef = db.collection("tickets");
+
+    // Apply status filter
+    if (statusFilter && ["Open", "Proses", "Done", "Batal"].includes(statusFilter)) {
+      ticketsRef = ticketsRef.where("status", "==", statusFilter);
+    }
+
+    // Note: Firestore tidak mendukung LIKE search, jadi kita akan filter di aplikasi
+    // Untuk production, gunakan Algolia atau Cloud Search
+
+    // =============================================
+    // HITUNG TOTAL TIKET (dengan filter)
+    // =============================================
     const snapshot = await ticketsRef.get();
-    const total = snapshot.size;
+
+    // Apply search filter di aplikasi (karena Firestore limitation)
+    let filteredDocs = snapshot.docs;
+    if (searchType && searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      filteredDocs = filteredDocs.filter((doc) => {
+        const data = doc.data();
+        switch (searchType) {
+          case "ticket":
+            return data.ticketNumber && data.ticketNumber.toLowerCase().includes(searchLower);
+          case "kode_user":
+            return data.kodeUser && data.kodeUser.toLowerCase().includes(searchLower);
+          case "nama_toko":
+            return data.namaToko && data.namaToko.toLowerCase().includes(searchLower);
+          case "pengirim":
+            return data.pengirim && data.pengirim.toLowerCase().includes(searchLower);
+          default:
+            return true;
+        }
+      });
+    }
+
+    const total = filteredDocs.length;
     const totalPages = Math.ceil(total / perPage);
 
     // =============================================
-    // AMBIL DATA TIKET DENGAN PAGINATION
+    // PAGINATION
     // =============================================
     const offset = (page - 1) * perPage;
 
-    const ticketsQuery = await ticketsRef
-      .orderBy("createdAt", "desc")
-      .limit(perPage)
-      .offset(offset)
-      .get();
+    // Sort by createdAt desc
+    filteredDocs.sort((a, b) => {
+      const aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
+      const bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
+      return bTime - aTime;
+    });
 
+    const paginatedDocs = filteredDocs.slice(offset, offset + perPage);
+
+    // =============================================
+    // FORMAT RESPONSE DATA
+    // =============================================
     const tickets = [];
-    ticketsQuery.forEach((doc) => {
+    paginatedDocs.forEach((doc) => {
       const data = doc.data();
       tickets.push({
         id: doc.id,
@@ -417,7 +467,10 @@ exports.listTickets = onRequest({cors: true, region: 'asia-southeast1'}, async (
         rrn: data.rrn,
         bukti_url: data.buktiUrl,
         ip_address: data.ipAddress,
+        status: data.status || "Open",
+        petugas_name: data.petugasName || null,
         created_at: data.createdAt ? data.createdAt.toDate().toISOString() : null,
+        updated_at: data.updatedAt ? data.updatedAt.toDate().toISOString() : null,
       });
     });
 
@@ -438,6 +491,152 @@ exports.listTickets = onRequest({cors: true, region: 'asia-southeast1'}, async (
 
   } catch (error) {
     console.error("Error listing tickets:", error);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan pada server. Silakan coba lagi.",
+    });
+  }
+});
+
+/**
+ * =============================================
+ * CLOUD FUNCTION: Update Ticket Status (ADMIN ONLY)
+ * =============================================
+ * Endpoint: POST /updateTicketStatus
+ *
+ * Headers:
+ * Authorization: Bearer <firebase_id_token>
+ *
+ * Request Body:
+ * {
+ *   ticket_id: string,
+ *   status: string ("Open" | "Proses" | "Done" | "Batal"),
+ *   petugas_name: string | null (required for "Proses" status)
+ * }
+ *
+ * Response:
+ * {
+ *   success: boolean,
+ *   message: string
+ * }
+ */
+exports.updateTicketStatus = onRequest({cors: true, region: 'asia-southeast1'}, async (req, res) => {
+  // Set CORS headers
+  res.set("Access-Control-Allow-Origin", "*"); // Ubah untuk production!
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  // Handle preflight request
+  if (req.method === "OPTIONS") {
+    res.status(200).send("");
+    return;
+  }
+
+  // Hanya izinkan POST
+  if (req.method !== "POST") {
+    res.status(405).json({
+      success: false,
+      message: "Method tidak diizinkan",
+    });
+    return;
+  }
+
+  try {
+    // =============================================
+    // AUTENTIKASI ADMIN
+    // =============================================
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({
+        success: false,
+        message: "Token autentikasi tidak ditemukan",
+      });
+      return;
+    }
+
+    const idToken = authHeader.split("Bearer ")[1];
+
+    try {
+      // Verifikasi Firebase ID token
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      console.log("Admin authenticated:", decodedToken.uid);
+    } catch (error) {
+      console.error("Token verification error:", error);
+      res.status(401).json({
+        success: false,
+        message: "Token tidak valid atau sudah expired",
+      });
+      return;
+    }
+
+    // =============================================
+    // VALIDASI INPUT
+    // =============================================
+    const {ticket_id, status, petugas_name} = req.body;
+
+    if (!ticket_id || typeof ticket_id !== "string" || !ticket_id.trim()) {
+      res.status(400).json({
+        success: false,
+        message: "Ticket ID harus diisi",
+      });
+      return;
+    }
+
+    const validStatuses = ["Open", "Proses", "Done", "Batal"];
+    if (!status || !validStatuses.includes(status)) {
+      res.status(400).json({
+        success: false,
+        message: "Status tidak valid. Pilihan: Open, Proses, Done, Batal",
+      });
+      return;
+    }
+
+    // Validasi nama petugas wajib untuk status "Proses"
+    if (status === "Proses" && (!petugas_name || !petugas_name.trim())) {
+      res.status(400).json({
+        success: false,
+        message: "Nama petugas harus diisi untuk status Proses",
+      });
+      return;
+    }
+
+    // =============================================
+    // UPDATE TIKET
+    // =============================================
+    const ticketRef = db.collection("tickets").doc(ticket_id.trim());
+    const ticketDoc = await ticketRef.get();
+
+    if (!ticketDoc.exists) {
+      res.status(404).json({
+        success: false,
+        message: "Tiket tidak ditemukan",
+      });
+      return;
+    }
+
+    const updateData = {
+      status: status,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Set nama petugas jika status adalah "Proses"
+    if (status === "Proses" && petugas_name) {
+      updateData.petugasName = petugas_name.trim();
+    }
+
+    await ticketRef.update(updateData);
+
+    // =============================================
+    // RESPONSE SUCCESS
+    // =============================================
+    res.status(200).json({
+      success: true,
+      message: `Status tiket berhasil diubah menjadi ${status}`,
+    });
+
+  } catch (error) {
+    console.error("Error updating ticket status:", error);
     res.status(500).json({
       success: false,
       message: "Terjadi kesalahan pada server. Silakan coba lagi.",

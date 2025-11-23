@@ -98,6 +98,64 @@
             <div id="dashboardError" class="alert alert-error hidden"></div>
             <div id="dashboardInfo" class="alert alert-info hidden"></div>
 
+            <!-- Filter & Search -->
+            <div class="card">
+                <div class="filter-container">
+                    <!-- Status Filter -->
+                    <div class="form-group">
+                        <label class="form-label" for="filterStatus">Filter Status</label>
+                        <select id="filterStatus" class="form-input">
+                            <option value="">Semua Status</option>
+                            <option value="Open">Open</option>
+                            <option value="Proses">Proses</option>
+                            <option value="Done">Done</option>
+                            <option value="Batal">Batal</option>
+                        </select>
+                    </div>
+
+                    <!-- Search Type -->
+                    <div class="form-group">
+                        <label class="form-label" for="searchType">Cari Berdasarkan</label>
+                        <select id="searchType" class="form-input">
+                            <option value="ticket">No. Tiket</option>
+                            <option value="kode_user">Kode User</option>
+                            <option value="nama_toko">Nama Toko</option>
+                            <option value="pengirim">Pengirim</option>
+                        </select>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="form-group">
+                        <label class="form-label" for="searchInput">Kata Kunci</label>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="form-input"
+                            placeholder="Ketik untuk mencari..."
+                        >
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <button
+                            type="button"
+                            id="btnSearch"
+                            class="btn btn-primary"
+                        >
+                            Cari
+                        </button>
+                        <button
+                            type="button"
+                            id="btnResetSearch"
+                            class="btn btn-secondary"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tabel Tiket -->
             <div class="card">
                 <div class="table-responsive">
@@ -112,7 +170,10 @@
                                 <th>Nominal</th>
                                 <th>Bank</th>
                                 <th>RRN</th>
+                                <th>Status</th>
+                                <th>Petugas</th>
                                 <th>Bukti</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -156,6 +217,42 @@
                 ×
             </button>
             <img id="modalImagePreview" src="" alt="Bukti Transfer" class="modal-image">
+        </div>
+    </div>
+
+    <!-- Modal untuk input nama petugas -->
+    <div id="modalPetugas" class="modal-overlay">
+        <div class="modal-content modal-dialog">
+            <button type="button" class="modal-close" id="btnClosePetugasModal">
+                ×
+            </button>
+            <div class="card-header">
+                <div class="card-title">Proses Tiket</div>
+                <div class="card-subtitle">Masukkan nama petugas yang menangani</div>
+            </div>
+            <form id="formPetugas">
+                <div class="form-group">
+                    <label class="form-label" for="petugasName">
+                        Nama Petugas <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="petugasName"
+                        class="form-input"
+                        placeholder="Masukkan nama petugas"
+                        required
+                    >
+                </div>
+                <input type="hidden" id="ticketIdHidden">
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        Proses Tiket
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btnCancelPetugas">
+                        Batal
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

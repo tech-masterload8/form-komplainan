@@ -14,6 +14,10 @@
       {
         "source": "/api/listTickets",
         "function": "listTickets"
+      },
+      {
+        "source": "/api/updateTicketStatus",
+        "function": "updateTicketStatus"
       }
     ],
     "headers": [
@@ -56,7 +60,9 @@
       ".git",
       "firebase-debug.log",
       "firebase-debug.*.log"
-    ]
+    ],
+    "codebase": "default",
+    "cleanupMinAge": "30d"
   },
   "firestore": {
     "rules": "firestore.rules",
