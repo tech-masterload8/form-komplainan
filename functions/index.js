@@ -12,7 +12,7 @@
  * - ipRateLimit: Rate limiting per IP
  */
 
-const functions = require("firebase-functions");
+const {onRequest} = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 
 // Inisialisasi Firebase Admin
@@ -155,7 +155,7 @@ function getClientIP(req) {
  *   ticket_number: string (jika success)
  * }
  */
-exports.createTicket = functions.https.onRequest(async (req, res) => {
+exports.createTicket = onRequest({cors: true}, async (req, res) => {
   // Set CORS headers
   res.set("Access-Control-Allow-Origin", "*"); // Ubah untuk production!
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -314,7 +314,7 @@ exports.createTicket = functions.https.onRequest(async (req, res) => {
  *   }
  * }
  */
-exports.listTickets = functions.https.onRequest(async (req, res) => {
+exports.listTickets = onRequest({cors: true}, async (req, res) => {
   // Set CORS headers
   res.set("Access-Control-Allow-Origin", "*"); // Ubah untuk production!
   res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
