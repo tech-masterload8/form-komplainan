@@ -1,0 +1,24 @@
+{
+  "name": "sistem-tiket-komplain",
+  "version": "2.0.0",
+  "description": "Sistem Tiket Komplain Transfer - Firebase Edition",
+  "scripts": {
+    "serve": "firebase emulators:start",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:firestore": "firebase deploy --only firestore",
+    "deploy:storage": "firebase deploy --only storage",
+    "logs": "firebase functions:log",
+    "setup": "cd functions && npm install && cd ..",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "firebase",
+    "complaint",
+    "ticket",
+    "system"
+  ],
+  "author": "",
+  "license": "MIT"
+}

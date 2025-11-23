@@ -1,0 +1,77 @@
+rules_version = '2';
+
+/**
+ * =============================================
+ * Firestore Security Rules
+ * =============================================
+ *
+ * STRATEGI KEAMANAN:
+ * - Semua write operations dilakukan melalui Cloud Functions
+ * - User biasa (anonymous) tidak bisa langsung write ke Firestore
+ * - Admin bisa read data melalui authenticated request
+ * - Rate limiting dihandle di Cloud Functions
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * =============================================
+     * Helper Functions
+     * =============================================
+     */
+
+    // Cek apakah user sudah authenticated (termasuk anonymous)
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Cek apakah user adalah admin (login dengan email/password, bukan anonymous)
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    /**
+     * =============================================
+     * Collection: tickets
+     * =============================================
+     * - Read: Hanya admin yang bisa read
+     * - Write: TIDAK ADA akses langsung, semua via Cloud Functions
+     */
+    match /tickets/{ticketId} {
+      // Hanya admin yang bisa membaca tiket
+      allow read: if isAdmin();
+
+      // TIDAK ada akses write langsung
+      // Semua create/update/delete dilakukan via Cloud Functions
+      allow write: if false;
+    }
+
+    /**
+     * =============================================
+     * Collection: ipRateLimit
+     * =============================================
+     * - Read: Tidak ada akses langsung
+     * - Write: TIDAK ada akses langsung, semua via Cloud Functions
+     */
+    match /ipRateLimit/{ipAddress} {
+      // Tidak ada akses read langsung
+      allow read: if false;
+
+      // TIDAK ada akses write langsung
+      // Semua create/update dilakukan via Cloud Functions
+      allow write: if false;
+    }
+
+    /**
+     * =============================================
+     * Default Rule: Deny All
+     * =============================================
+     * Semua collection lain tidak bisa diakses
+     */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,47 @@
+rules_version = '2';
+
+/**
+ * =============================================
+ * Firebase Storage Security Rules
+ * =============================================
+ *
+ * STRATEGI KEAMANAN:
+ * - Siapa saja bisa read (untuk admin lihat bukti transfer)
+ * - Hanya authenticated user (termasuk anonymous) yang bisa upload
+ * - Maksimal ukuran file 5 MB
+ * - Hanya image file (JPEG, PNG) yang diizinkan
+ */
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /**
+     * =============================================
+     * Path: bukti-transfer/
+     * =============================================
+     * Folder untuk menyimpan bukti transfer dari user
+     */
+    match /bukti-transfer/{fileName} {
+
+      // Siapa saja bisa read (untuk admin lihat bukti)
+      allow read: if true;
+
+      // Hanya authenticated user yang bisa write
+      // Validasi ukuran file max 5 MB
+      // Validasi tipe file harus image
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/(jpeg|jpg|png)');
+    }
+
+    /**
+     * =============================================
+     * Default Rule: Deny All
+     * =============================================
+     * Semua path lain tidak bisa diakses
+     */
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

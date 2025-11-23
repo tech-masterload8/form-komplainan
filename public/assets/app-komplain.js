@@ -38,9 +38,16 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 
 // Konfigurasi API endpoint
-// PENTING: Ganti dengan URL API Anda yang sebenarnya
-const API_BASE_URL = '/api'; // Sesuaikan dengan lokasi API Anda
-const API_CREATE_TICKET = `${API_BASE_URL}/create_ticket.php`;
+// Karena menggunakan Firebase Hosting rewrites, kita bisa langsung pakai path relatif
+// Firebase Hosting akan otomatis route /api/createTicket ke Cloud Function
+const API_CREATE_TICKET = '/api/createTicket';
+
+// ALTERNATIF 1: Jika ingin pakai full URL Firebase Functions
+// const FUNCTIONS_BASE_URL = 'https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net';
+// const API_CREATE_TICKET = `${FUNCTIONS_BASE_URL}/createTicket`;
+
+// ALTERNATIF 2: Jika testing dengan Firebase Emulator
+// const API_CREATE_TICKET = 'http://localhost:5001/YOUR_PROJECT_ID/us-central1/createTicket';
 
 // =============================================
 // DOM ELEMENTS
